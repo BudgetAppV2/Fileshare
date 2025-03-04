@@ -1,0 +1,431 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8" />
+    <title>BudgetApp</title>
+    <!-- Icon library for navigation icons (Font Awesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="css/style2.css">
+
+</head>
+<body>
+
+    <!-- =============================
+         DAY CARDS SECTION
+    ============================= -->
+    <div id="dayCardsSection" class="app-section">
+        <h1>Vue Hebdomadaire</h1>
+        <div id="weekSummary">
+            <strong style="font-size: 1.2rem; color: #333;">Sem. du 2 févr. au 8 févr.</strong><br>
+            <span style="font-size: 1.5rem; font-weight: bold; color: #007BFF;">Solde Restant: -545,00&nbsp;$</span>
+        </div>
+        <div id="buttonDiv"></div>
+        <div id="weekNavigation">
+            <button class="nav-button" id="prevWeek">⬅️ Semaine Précédente</button>
+            <button class="nav-button" id="nextWeek">Semaine Suivante ➡️</button>
+        </div>
+        <button id="toggleView" style="margin: 10px auto; padding: 6px 14px; cursor: pointer; font-size: 14px; width: auto; min-width: 150px; display: block; border-radius: 8px; background-color: #007BFF; color: white; border: none; font-weight: bold; transition: all 0.2s ease-in-out;">
+            🔄 Passer en Vue Mensuelle
+        </button>
+        <button id="toggleAllCards" class="toggle-all-btn">🔽 Déployer tout</button>
+
+        <!-- Day Cards Container -->
+        <div id="dayCardsContainer">
+            <div class="day-card">
+                <h2 class="day-summary">dim. 2 févr.</h2>
+                <div class="day-details" style="display: none;">
+                    <p><strong>Revenus:</strong> 1&nbsp;500,00&nbsp;$</p>
+                    <p><strong>Dépenses:</strong> 0,00&nbsp;$</p>
+                </div>
+                <button class="expand-transactions" title="Voir détails" style="
+                                    all: unset;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: block;
+                                    margin: 5px auto 0 auto;
+                                    text-align: center;
+                                ">
+                    +
+                </button>
+                <div class="transactions-list" style="display: none;">
+                    <div>
+                        <strong>💰 Revenus</strong><p style="color: green;">
+                            💰 Salaire - 1&nbsp;500,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-02" data-type="Revenu" data-description="Salaire" data-amount="1500" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p>
+                    </div>
+
+
+                </div>
+                <!-- 🗑 Delete Recurrences Button -->
+            </div><div class="day-card">
+                <h2 class="day-summary">lun. 3 févr.</h2>
+                <div class="day-details" style="display: none;">
+                    <p><strong>Revenus:</strong> 0,00&nbsp;$</p>
+                    <p><strong>Dépenses:</strong> -20,00&nbsp;$</p>
+                </div>
+                <button class="expand-transactions" title="Voir détails" style="
+                                    all: unset;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: block;
+                                    margin: 5px auto 0 auto;
+                                    text-align: center;
+                                ">
+                    +
+                </button>
+                <div class="transactions-list" style="display: none;">
+
+                    <div>
+                        <strong>💸 Dépenses</strong><p style="color: red;">
+                            💸 Transport - -20,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-03" data-type="Dépense" data-description="Transport" data-amount="-20" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p>
+                    </div>
+
+                </div>
+                <!-- 🗑 Delete Recurrences Button -->
+            </div><div class="day-card">
+                <h2 class="day-summary">mar. 4 févr.</h2>
+                <div class="day-details" style="display: none;">
+                    <p><strong>Revenus:</strong> 200,00&nbsp;$</p>
+                    <p><strong>Dépenses:</strong> -2&nbsp;050,00&nbsp;$</p>
+                </div>
+                <button class="expand-transactions" title="Voir détails" style="
+                                    all: unset;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: block;
+                                    margin: 5px auto 0 auto;
+                                    text-align: center;
+                                ">
+                    +
+                </button>
+                <div class="transactions-list" style="display: none;">
+                    <div>
+                        <strong>💰 Revenus</strong><p style="color: green;">
+                            💰 Salaire - 200,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-04" data-type="Revenu" data-description="Salaire" data-amount="200" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p>
+                    </div>
+                    <div>
+                        <strong>💸 Dépenses</strong><p style="color: red;">
+                            💸 Resto - -30,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-04" data-type="Dépense" data-description="Resto" data-amount="-30" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p><p style="color: red;">
+                            💸 Loyer - -2&nbsp;020,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-04" data-type="Dépense" data-description="Loyer" data-amount="-2020" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p>
+                    </div>
+
+                </div>
+                <!-- 🗑 Delete Recurrences Button -->
+            </div><div class="day-card">
+                <h2 class="day-summary">mer. 5 févr.</h2>
+                <div class="day-details" style="display: none;">
+                    <p><strong>Revenus:</strong> 0,00&nbsp;$</p>
+                    <p><strong>Dépenses:</strong> -30,00&nbsp;$</p>
+                </div>
+                <button class="expand-transactions" title="Voir détails" style="
+                                    all: unset;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: block;
+                                    margin: 5px auto 0 auto;
+                                    text-align: center;
+                                ">
+                    +
+                </button>
+                <div class="transactions-list" style="display: none;">
+
+                    <div>
+                        <strong>💸 Dépenses</strong><p style="color: red;">
+                            💸 Resto - -30,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-05" data-type="Dépense" data-description="Resto" data-amount="-30" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p>
+                    </div>
+
+                </div>
+                <!-- 🗑 Delete Recurrences Button -->
+            </div><div class="day-card">
+                <h2 class="day-summary">jeu. 6 févr.</h2>
+                <div class="day-details" style="display: none;">
+                    <p><strong>Revenus:</strong> 0,00&nbsp;$</p>
+                    <p><strong>Dépenses:</strong> -100,00&nbsp;$</p>
+                </div>
+                <button class="expand-transactions" title="Voir détails" style="
+                                    all: unset;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: block;
+                                    margin: 5px auto 0 auto;
+                                    text-align: center;
+                                ">
+                    +
+                </button>
+                <div class="transactions-list" style="display: none;">
+
+                    <div>
+                        <strong>💸 Dépenses</strong><p style="color: red;">
+                            💸 Loyer - -100,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-06" data-type="Dépense" data-description="Loyer" data-amount="-100" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p>
+                    </div>
+
+                </div>
+                <!-- 🗑 Delete Recurrences Button -->
+            </div><div class="day-card">
+                <h2 class="day-summary">ven. 7 févr.</h2>
+                <div class="day-details" style="display: none;">
+                    <p><strong>Revenus:</strong> 300,00&nbsp;$</p>
+                    <p><strong>Dépenses:</strong> 0,00&nbsp;$</p>
+                </div>
+                <button class="expand-transactions" title="Voir détails" style="
+                                    all: unset;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: block;
+                                    margin: 5px auto 0 auto;
+                                    text-align: center;
+                                ">
+                    +
+                </button>
+                <div class="transactions-list" style="display: none;">
+                    <div>
+                        <strong>💰 Revenus</strong><p style="color: green;">
+                            💰 Bonus - 300,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-07" data-type="Revenu" data-description="Bonus" data-amount="300" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p>
+                    </div>
+
+
+                </div>
+                <!-- 🗑 Delete Recurrences Button -->
+            </div><div class="day-card">
+                <h2 class="day-summary">sam. 8 févr.</h2>
+                <div class="day-details" style="display: none;">
+                    <p><strong>Revenus:</strong> 50,00&nbsp;$</p>
+                    <p><strong>Dépenses:</strong> -395,00&nbsp;$</p>
+                </div>
+                <button class="expand-transactions" title="Voir détails" style="
+                                    all: unset;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                    cursor: pointer;
+                                    display: block;
+                                    margin: 5px auto 0 auto;
+                                    text-align: center;
+                                ">
+                    +
+                </button>
+                <div class="transactions-list" style="display: none;">
+                    <div>
+                        <strong>💰 Revenus</strong><p style="color: green;">
+                            💰 Salaire - 50,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-08" data-type="Revenu" data-description="Salaire" data-amount="50" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p>
+                    </div>
+                    <div>
+                        <strong>💸 Dépenses</strong><p style="color: red;">
+                            💸 Épicerie - -50,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-08" data-type="Dépense" data-description="Épicerie" data-amount="-50" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p><p style="color: red;">
+                            💸 Épicerie - -300,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-08" data-type="Dépense" data-description="Épicerie" data-amount="-300" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p><p style="color: red;">
+                            💸 Épicerie - -45,00&nbsp;$
+
+                            <span class="delete-transaction" data-date="2025-02-08" data-type="Dépense" data-description="Épicerie" data-amount="-45" style="cursor: pointer; margin-left: 10px; color: red;">❌</span>
+                        </p>
+                    </div>
+
+                </div>
+                <!-- 🗑 Delete Recurrences Button -->
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- =============================
+         CHARTS SECTION
+    ============================= -->
+    <div id="chartsSection" class="app-section" style="display: none;">
+        <h2>Mes Graphiques</h2>
+        <!-- Navigation for graph section -->
+        <div id="graphNavigation">
+            <button id="prevGraph">⬅️ Précédent</button>
+            <button id="nextGraph">Suivant ➡️</button>
+        </div>
+
+        <!-- Date Reference Display -->
+        <div id="graphDateReference" style="margin: 10px 0; font-size: 1.2rem; color: #333;"></div>
+
+        <!-- Toggle for weekly/monthly view -->
+        <div id="graphToggle">
+            <button id="weeklyGraphBtn" class="graph-toggle-btn active">Vue Hebdomadaire</button>
+            <button id="monthlyGraphBtn" class="graph-toggle-btn">Vue Mensuelle</button>
+        </div>
+
+        <!-- Container for the charts -->
+        <div id="chartsContainer">
+            <div class="chart-page">
+                <h2>Comparaison Revenus/Dépenses</h2>
+                <canvas id="revenuesVsExpensesChart"></canvas>
+            </div>
+            <div class="chart-page">
+                <h2>Répartition des Dépenses par Catégorie</h2>
+                <canvas id="enhancedPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- =============================
+         TRANSACTIONS SECTION
+    ============================= -->
+
+    <div id="progressSection" class="app-section" style="display: none;">
+        <div id="progressToggle">
+            <button id="weeklyProgressBtn" class="toggle-view-btn">Vue Hebdomadaire</button>
+            <button id="monthlyProgressBtn" class="toggle-view-btn">Vue Mensuelle</button>
+        </div>
+        <div id="transactionsContainer"></div>
+    </div>
+
+
+
+
+
+
+    <!-- =============================
+         FORM SECTION
+    ============================= -->
+    <div id="formSection" class="app-section" style="display: none;">
+        <h2>Ajouter une Dépense</h2>
+        <div id="expenseContainer">
+            <form id="expenseForm">
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type" required>
+                        <option value="Revenu">Revenu</option>
+                        <option value="Dépense">Dépense</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <select id="description" required>
+                        <option value="Transport">Transport</option>
+                        <option value="Salaire">Salaire</option>
+                        <option value="Resto">Resto</option>
+                        <option value="Loyer">Loyer</option>
+                        <option value="Bonus">Bonus</option>
+                        <option value="Épicerie">Épicerie</option>
+                        <option value="transport">transport</option>
+                        <option value="Test Debug">Test Debug</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Montant</label>
+                    <input type="number" id="amount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="recurrence">Récurrence</label>
+                    <select id="recurrence">
+                        <option value="">Aucune</option>
+                        <option value="Hebdomadaire">Hebdomadaire</option>
+                        <option value="Bi-Hebdomadaire">Bi-Hebdomadaire</option>
+                        <option value="Mensuelle">Mensuelle</option>
+                        <option value="Trimestrielle">Trimestrielle</option>
+                    </select>
+                </div>
+                <button type="submit">➕ Ajouter</button>
+            </form>
+        </div>
+        <h3>Résultat:</h3>
+        <pre id="response"></pre>
+    </div>
+    <!-- =============================
+         BUDGET SECTION
+    ============================= -->
+
+
+    <div id="budgetSection" class="app-section" style="display: none;">
+        <div class="container">
+            <h1>Gestion du Budget</h1>
+            <div class="funds-display">
+                <span>Fonds disponibles :</span>
+                <span id="availableFunds" class="funds-amount">$2000</span>
+            </div>
+            <div id="categoriesContainer" class="categories-container"></div>
+            <div id="moveFundsContainer" class="move-funds-container"></div>
+            <div class="overspending-display">
+                <span>Dépassement :</span>
+                <span id="overspending" class="overspending-amount">$0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- =============================
+         BOTTOM NAV BAR
+    ============================= -->
+    <div id="bottomNav">
+        <button class="nav-btn active" data-target="dayCardsSection">
+            <i class="fa fa-calendar"></i><span>Accueil</span>
+        </button>
+        <button class="nav-btn" data-target="chartsSection">
+            <i class="fa fa-chart-bar"></i><span>Graphiques</span>
+        </button>
+        <button class="nav-btn" data-target="progressSection">
+            <i class="fa fa-tasks"></i><span>Progress</span>
+        </button>
+        <button class="nav-btn" data-target="formSection">
+            <i class="fa fa-plus-circle"></i><span>Formulaire</span>
+        </button>
+        <button class="nav-btn" data-target="budgetSection">
+            <i class="fas fa-wallet"></i>
+            Budget
+        </button>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="js/breakdown.js"></script>
+    <script type="module" src="js/daycards.js"></script>
+<script type="module" src="js/graphs.js"></script>
+<script type="module" src="js/main.js"></script>
+<script type="module" src="js/progress.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script type="module" src="js/budget.js"></script>
+<script type="module" src="js/dataService.js"></script>
+<script type="module" src="js/datamanager.js"></script>
+
+
+    <script>console.log("initBudgetAllocation:", window.initBudgetAllocation);</script>
+
+</body>
+</html>
