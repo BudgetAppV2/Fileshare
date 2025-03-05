@@ -1,97 +1,192 @@
 console.log("daycards.js loaded");
 
-// Exporting variables for external use if needed.
-export let currentView = "week";
-export let selectedWeek = 0;
-export let selectedMonth = new Date().getMonth() + 1;
+import { dateManager } from "./dateManager.js";
+
+const sectionName = "daycards"; // Unique identifier for this section
+dateManager.initSection(sectionName);
 
 /**
  * Displays daycards for the given date range using provided calendar data.
- * @param {Array} calendarData - Array of transaction data.
- * @param {string} startDate - ISO date string for start date.
- * @param {string} endDate - ISO date string for end date.
  */
 export function displayDayCards(calendarData, startDate, endDate) {
   const container = document.getElementById("dayCardsContainer");
-  container.innerHTML = "";
-  
-  // Loop through calendarData starting at index 1 (assuming header at 0)
+  if (!container) {
+    console.error("❌ ERROR: #dayCardsContainer not found in DOM!");
+    return;
+  }
+
+  container.innerHTML = ""; // Clear existing day cards
+  console.log(`📅 Filtering transactions from ${startDate} to ${endDate}`);
+
+  if (!calendarData || !Array.isArray(calendarData) || calendarData.length === 0) {
+    console.error("❌ ERROR: calendarData is empty or undefined!");
+    return;
+  }
+
+  // ✅ Step 1: Ensure exactly 7 day cards are created, even if empty
+  let transactionsByDate = {};
+  let currentDay = new Date(Date.UTC(...startDate.split('-').map(Number)));
+
+  for (let i = 0; i < 7; i++) {
+    let dateKey = currentDay.toISOString().split("T")[0]; // Normalize to UTC
+    transactionsByDate[dateKey] = { revenus: 0, depenses: 0, transactions: [] };
+    currentDay.setUTCDate(currentDay.getUTCDate() + 1);
+  }
+
+  console.log("✅ Initialized transactionsByDate structure:", transactionsByDate);
+
+  // ✅ Step 2: Process transactions and group them by date
   for (let i = 1; i < calendarData.length; i++) {
-    let [rawDate, type, description, amount] = calendarData[i];
-    let txDate = new Date(rawDate + "T00:00:00");
-    if (txDate >= new Date(startDate) && txDate <= new Date(endDate)) {
-      const dayCard = document.createElement("div");
-      dayCard.classList.add("day-card");
-      
-      dayCard.innerHTML = `
-        <h2 class="day-summary">${rawDate}</h2>
-        <div class="day-details" style="display: none;">
-          <p><strong>Type:</strong> ${type}</p>
-          <p><strong>Description:</strong> ${description}</p>
-          <p><strong>Amount:</strong> ${amount}</p>
-        </div>
-        <button class="expand-transactions" title="Voir détails">+</button>
-      `;
-      
-      container.appendChild(dayCard);
-      
-      const expandBtn = dayCard.querySelector(".expand-transactions");
-      expandBtn.addEventListener("click", function () {
-        const details = dayCard.querySelector(".day-details");
-        if (details.style.display === "none") {
-          details.style.display = "block";
-          dayCard.classList.add("expanded");
-        } else {
-          details.style.display = "none";
-          dayCard.classList.remove("expanded");
-        }
+    let transaction = calendarData[i];
+
+    if (!Array.isArray(transaction) || transaction.length < 4) {
+      console.warn(`⚠️ Skipping invalid transaction at index ${i}:`, transaction);
+      continue;
+    }
+
+    let [rawDate, type, description, amount] = transaction;
+
+    if (!rawDate) {
+      console.warn(`⚠️ Skipping transaction with missing date:`, transaction);
+      continue;
+    }
+
+    // ✅ Normalize date and fix timezone shifts
+    let [year, month, day] = rawDate.split('-').map(Number);
+    let txDate = new Date(Date.UTC(year, month - 1, day)); // Fix month shift
+    let txDateKey = txDate.toISOString().split("T")[0];
+
+    console.log(`📅 Normalized Date for Transaction: ${txDateKey}`);
+
+    if (txDateKey < startDate || txDateKey > endDate) {
+      continue; // Skip transactions outside of range
+    }
+
+    if (!transactionsByDate[txDateKey]) {
+      transactionsByDate[txDateKey] = { revenus: 0, depenses: 0, transactions: [] };
+    }
+
+    let parsedAmount = parseFloat(amount.replace(',', '.')) || 0; // Ensure correct decimal parsing
+
+    if (type === "Revenu") {
+      transactionsByDate[txDateKey].revenus += parsedAmount;
+    } else if (type === "Dépense") {
+      transactionsByDate[txDateKey].depenses += Math.abs(parsedAmount);
+    }
+
+    transactionsByDate[txDateKey].transactions.push({ type, description, amount: parsedAmount });
+  }
+
+  console.log("✅ Processed transactionsByDate:", transactionsByDate);
+
+  // ✅ Step 3: Create 7 day cards (Default: Collapsed)
+  let displayStartDate = new Date(Date.UTC(...startDate.split('-').map(Number))); // Ensure correct start date
+  for (let i = 0; i < 7; i++) {
+    let dateKey = displayStartDate.toISOString().split("T")[0]; // Normalize to UTC
+    let { revenus, depenses, transactions } = transactionsByDate[dateKey] || { revenus: 0, depenses: 0, transactions: [] };
+
+    let formattedDate = displayStartDate.toLocaleDateString("fr-FR", { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    let dayName = displayStartDate.toLocaleDateString("fr-FR", { weekday: 'short', timeZone: 'UTC' });
+
+    console.log(`🛠️ Creating day card for ${formattedDate}`);
+
+    let card = document.createElement("div");
+    card.classList.add("day-card");
+
+    card.innerHTML = `
+      <div class="day-summary">
+          <span class="date-label">${dayName} ${formattedDate}</span>
+      </div>
+      <div class="day-details" style="display: none;">
+          <p style="color: green;">+${revenus.toFixed(2)}</p>
+          <p style="color: red;">-${depenses.toFixed(2)}</p>
+      </div>
+      <button class="expand-transactions" title="Voir détails">+</button>
+      <div class="transactions-list" style="display: none;">
+          ${transactions.length > 0 
+            ? transactions.map(tx => `<p>${tx.type === "Revenu" ? "💰" : "💸"} ${tx.description} - ${tx.amount.toFixed(2)}</p>`).join("")
+            : "<p>Aucune transaction</p>"
+          }
+      </div>
+    `;
+
+    console.log(`✅ Card created for ${formattedDate}, now attaching event listeners...`);
+
+    // ✅ Expand/collapse summary when clicking the day card
+    card.addEventListener("click", function (event) {
+      if (event.target.classList.contains("expand-transactions")) return;
+
+      let details = this.querySelector(".day-details");
+      let transactionsList = this.querySelector(".transactions-list");
+      let isExpanded = details.style.display === "block";
+
+      if (isExpanded) {
+        details.style.display = "none";
+        transactionsList.style.display = "none";
+      } else {
+        details.style.display = "block";
+      }
+    });
+
+    // ✅ Expand transactions when clicking the ➕ button
+    let expandBtn = card.querySelector(".expand-transactions");
+    let transactionsList = card.querySelector(".transactions-list");
+
+    if (expandBtn && transactionsList) {
+      expandBtn.addEventListener("click", function (event) {
+        event.stopPropagation();
+        transactionsList.style.display = transactionsList.style.display === "block" ? "none" : "block";
       });
     }
+
+    container.appendChild(card);
+    displayStartDate.setUTCDate(displayStartDate.getUTCDate() + 1); // Move to next day
   }
+
+  console.log("✅ Finished creating all day cards.");
 }
 
-/**
- * Displays a monthly view by breaking the month into weeks.
- * @param {Array} calendarData - Array of transaction data.
- * @param {number} selectedMonth - The month number (1-indexed).
- */
-export function displayMonthCards(calendarData, selectedMonth) {
-  const container = document.getElementById("dayCardsContainer");
-  container.innerHTML = "";
-  
-  const now = new Date();
-  const year = now.getFullYear();
-  const startOfMonth = new Date(year, selectedMonth - 1, 1);
-  const endOfMonth = new Date(year, selectedMonth, 0);
-  
-  // Use displayDayCards with the calculated date range.
-  displayDayCards(
-    calendarData,
-    startOfMonth.toISOString().split("T")[0],
-    endOfMonth.toISOString().split("T")[0]
-  );
-}
+
+
+
+
 
 /**
- * Sets up navigation buttons for week view.
+ * Handles week navigation.
  */
 export function setupWeekNavigation() {
   const prevWeekButton = document.getElementById("prevWeek");
   const nextWeekButton = document.getElementById("nextWeek");
-  
+
   if (prevWeekButton) {
     prevWeekButton.addEventListener("click", function () {
-      selectedWeek = Math.max(0, selectedWeek - 1);
-      console.log("Previous week clicked. New week index:", selectedWeek);
-      // Calculate new week date range and call displayDayCards with calendarData
+      dateManager.prev(sectionName);
     });
   }
-  
+
   if (nextWeekButton) {
     nextWeekButton.addEventListener("click", function () {
-      selectedWeek++;
-      console.log("Next week clicked. New week index:", selectedWeek);
-      // Calculate new week date range and call displayDayCards with calendarData
+      dateManager.next(sectionName);
+    });
+  }
+}
+
+/**
+ * Handles month navigation.
+ */
+export function setupMonthNavigation() {
+  const prevMonthButton = document.getElementById("prevMonth");
+  const nextMonthButton = document.getElementById("nextMonth");
+
+  if (prevMonthButton) {
+    prevMonthButton.addEventListener("click", function () {
+      dateManager.prev(sectionName);
+    });
+  }
+
+  if (nextMonthButton) {
+    nextMonthButton.addEventListener("click", function () {
+      dateManager.next(sectionName);
     });
   }
 }
@@ -101,87 +196,62 @@ export function setupWeekNavigation() {
  */
 export function setupToggleView() {
   const toggleViewButton = document.getElementById("toggleView");
+
   if (toggleViewButton) {
     toggleViewButton.addEventListener("click", function () {
-      currentView = currentView === "week" ? "month" : "week";
-      
-      if (currentView === "month") {
+      if (dateManager.sectionStates[sectionName].view === "week") {
+        dateManager.setMonthView(sectionName);
         toggleViewButton.textContent = "📅 Vue Hebdomadaire";
-        // You need to fetch calendarData from your API and pass it here:
-        // displayMonthCards(calendarData, selectedMonth);
       } else {
+        dateManager.setWeekView(sectionName);
         toggleViewButton.textContent = "📆 Vue Mensuelle";
-        // Similarly, calculate week date range and update daycards.
-        console.log("Switched to weekly view");
       }
-      
       updateNavigationButtons();
     });
   }
 }
 
 /**
- * Toggles all daycards' expand/collapse state.
- */
-export function setupToggleAllCards() {
-  const toggleAllBtn = document.getElementById("toggleAllCards");
-  if (toggleAllBtn) {
-    toggleAllBtn.addEventListener("click", function () {
-      if (currentView === "month") {
-        let allCards = document.querySelectorAll(".month-view-card");
-        let isAnyExpanded = Array.from(allCards).some(card => card.classList.contains("expanded"));
-        allCards.forEach(card => {
-          card.classList.toggle("expanded", !isAnyExpanded);
-          let details = card.querySelector(".day-details");
-          if (details) {
-            details.style.display = !isAnyExpanded ? "block" : "none";
-          }
-        });
-        toggleAllBtn.textContent = isAnyExpanded ? "🔽 Déployer tout" : "🔼 Réduire tout";
-      } else {
-        let allCards = document.querySelectorAll(".day-card");
-        let isAnyExpanded = Array.from(allCards).some(card => card.classList.contains("expanded"));
-        allCards.forEach(card => {
-          let details = card.querySelector(".day-details");
-          let transactionsList = card.querySelector(".transactions-list");
-          if (isAnyExpanded) {
-            card.classList.remove("expanded");
-            if (details) details.style.display = "none";
-            if (transactionsList) transactionsList.style.display = "none";
-          } else {
-            card.classList.add("expanded");
-            if (details) details.style.display = "block";
-            if (transactionsList) transactionsList.style.display = "block";
-          }
-        });
-        toggleAllBtn.textContent = isAnyExpanded ? "🔽 Déployer tout" : "🔼 Réduire tout";
-      }
-    });
-  }
-}
-
-/**
- * Updates the labels of navigation buttons based on the current view.
+ * Updates navigation button visibility based on the current view.
  */
 export function updateNavigationButtons() {
   const prevWeekButton = document.getElementById("prevWeek");
   const nextWeekButton = document.getElementById("nextWeek");
-  if (!prevWeekButton || !nextWeekButton) return;
+  const prevMonthButton = document.getElementById("prevMonth");
+  const nextMonthButton = document.getElementById("nextMonth");
+
+  let currentView = dateManager.sectionStates[sectionName].view;
+
   if (currentView === "month") {
-    prevWeekButton.textContent = "⬅️ Mois Précédent";
-    nextWeekButton.textContent = "Mois Suivant ➡️";
+    if (prevWeekButton) prevWeekButton.style.display = "none";
+    if (nextWeekButton) nextWeekButton.style.display = "none";
+    if (prevMonthButton) prevMonthButton.style.display = "inline-block";
+    if (nextMonthButton) nextMonthButton.style.display = "inline-block";
   } else {
-    prevWeekButton.textContent = "⬅️ Semaine Précédente";
-    nextWeekButton.textContent = "Semaine Suivante ➡️";
+    if (prevWeekButton) prevWeekButton.style.display = "inline-block";
+    if (nextWeekButton) nextWeekButton.style.display = "inline-block";
+    if (prevMonthButton) prevMonthButton.style.display = "none";
+    if (nextMonthButton) nextMonthButton.style.display = "none";
   }
 }
 
-// Initialize event listeners when DOM is ready.
+/**
+ * Listens for updates from `dateManager.js` and updates daycards.
+ */
+document.addEventListener("dateRangeUpdated", (event) => {
+  const { section, startDate, endDate, view } = event.detail;
+  if (section === sectionName) {
+    console.log(`📅 Updating Day Cards: ${startDate} → ${endDate} (View: ${view})`);
+    displayDayCards(window.calendarData, startDate, endDate);
+  }
+});
+
+/**
+ * Initializes event listeners when DOM is ready.
+ */
 document.addEventListener("DOMContentLoaded", function () {
   setupToggleView();
-  setupToggleAllCards();
   setupWeekNavigation();
-  // Initialize the view (for testing, hardcoding a date range).
-  // Replace calendarData with data fetched from your API.
-  // For example: displayDayCards(calendarData, "2025-02-02", "2025-02-08");
+  setupMonthNavigation();
+  updateNavigationButtons();
 });

@@ -1,13 +1,25 @@
-// budget.js
-import { getMonthRange, normalizeNumber } from './utils.js';
-import { getTotalRevenues, getRecurringExpenses, fetchBudgetProgress } from './api.js';
+console.log("budget.js loaded");
 
-// Global variables (could be refactored later)
+import { dateManager } from "./dateManager.js";
+import { getTotalRevenues, getRecurringExpenses, fetchBudgetProgress } from "./api.js";
+
+const sectionName = "budget"; // Unique identifier for this section
+dateManager.initSection(sectionName);
+
 export let categories = {};
 export let allowedCategories = [];
 export let totalFunds = 0;
 
-// Calculates the stats for last month.
+// ==========================
+// 📅 Get Budget Date Range
+// ==========================
+function getBudgetDateRange() {
+    return dateManager.getDateRange(sectionName);
+}
+
+// ==========================
+// 📊 Calculate Last Month Stats
+// ==========================
 export function calculateLastMonthStats() {
     const now = new Date();
     const currentMonth = now.getMonth() + 1;
@@ -15,10 +27,9 @@ export function calculateLastMonthStats() {
         console.log("Current month is February; ignoring last month's data.");
         return { totalUnspent: 0, totalOverspending: 0 };
     }
-    let totalUnspent = 0;
-    let totalOverspending = 0;
-    const unspentDetails = [];
-    const overspendingDetails = [];
+
+    let totalUnspent = 0, totalOverspending = 0;
+    const unspentDetails = [], overspendingDetails = [];
 
     for (let cat in categories) {
         const data = categories[cat];
@@ -32,46 +43,52 @@ export function calculateLastMonthStats() {
             overspendingDetails.push(`${cat}: Spent ${data.spent} - Budget ${data.budget} = Over ${over}`);
         }
     }
+
     console.log("Categories contributing to Unspent:", unspentDetails.join(" | "));
     console.log("Categories contributing to Overspending:", overspendingDetails.join(" | "));
     console.log("Total Unspent:", totalUnspent, "Total Overspending:", totalOverspending);
+
     return { totalUnspent, totalOverspending };
 }
 
+// ==========================
+// 💰 Calculate Available Funds
+// ==========================
 export async function calculateFondsDisponibles() {
-    const now = new Date();
-    const { start: currentStart, end: currentEnd } = getMonthRange(now);
-    const startStr = currentStart.toISOString().split("T")[0];
-    const endStr = currentEnd.toISOString().split("T")[0];
+    const { startDate, endDate } = getBudgetDateRange();
+    console.log(`📅 Budget Range: ${startDate} → ${endDate}`);
 
-    const currentRevenues = await getTotalRevenues(startStr, endStr);
-    console.log("Current Revenues:", currentRevenues);
+    const currentRevenues = await getTotalRevenues(startDate, endDate);
+    console.log("💰 Current Revenues:", currentRevenues);
 
-    const recurringExpenses = await getRecurringExpenses(currentStart, currentEnd);
-    console.log("Recurring Expenses:", recurringExpenses);
+    const recurringExpenses = await getRecurringExpenses(startDate, endDate);
+    console.log("📉 Recurring Expenses:", recurringExpenses);
 
     const { totalUnspent, totalOverspending } = calculateLastMonthStats();
-    console.log("Total Unspent (last month):", totalUnspent);
-    console.log("Total Overspending (last month):", totalOverspending);
+    console.log("📊 Total Unspent (last month):", totalUnspent);
+    console.log("📊 Total Overspending (last month):", totalOverspending);
 
     const rollOver = totalUnspent - totalOverspending;
-    console.log("Roll Over:", rollOver);
+    console.log("🔄 Roll Over:", rollOver);
 
     const rawFonds = currentRevenues + recurringExpenses + rollOver;
-    console.log("Raw Funds (Revenues + Recurring Expenses + Roll Over):", rawFonds);
+    console.log("💰 Raw Funds (Revenues + Recurring Expenses + Roll Over):", rawFonds);
 
     let totalAllowed = 0;
     for (let cat in categories) {
         totalAllowed += categories[cat].budget;
     }
-    console.log("Total Allowed Budgets:", totalAllowed);
+    console.log("📊 Total Allowed Budgets:", totalAllowed);
 
     const availableFunds = rawFonds - totalAllowed;
-    console.log("Available Funds (Fonds Disponible):", availableFunds);
+    console.log("📌 Available Funds (Fonds Disponible):", availableFunds);
 
     return availableFunds;
 }
 
+// ==========================
+// 🏦 Update Funds Display
+// ==========================
 export function updateFundsDisplay() {
     const availableFundsElem = document.getElementById("availableFunds");
     if (availableFundsElem) {
@@ -79,28 +96,28 @@ export function updateFundsDisplay() {
     }
 }
 
+// ==========================
+// 🗂️ Update Categories Display
+// ==========================
 export function updateCategoriesDisplay() {
-    console.log("Updating categories display for:", Object.keys(categories));
+    console.log("🔄 Updating categories display for:", Object.keys(categories));
+
     const categoriesContainer = document.getElementById("categoriesContainer");
     const overspendingDisplay = document.getElementById("overspending");
     if (!categoriesContainer || !overspendingDisplay) return;
+
     categoriesContainer.innerHTML = "";
 
-    const { start: currentStart, end: currentEnd } = getMonthRange(new Date());
-    const startDate = currentStart.toISOString().split("T")[0];
-    const endDate = currentEnd.toISOString().split("T")[0];
+    const { startDate, endDate } = getBudgetDateRange();
+    console.log(`📅 Using budget range: ${startDate} - ${endDate}`);
 
     if (!categories.hasOwnProperty("Autres")) {
         categories["Autres"] = { budget: 0, spent: 0 };
         allowedCategories.push("Autres");
-        console.log("Added fallback 'Autres' category.");
+        console.log("✅ Added fallback 'Autres' category.");
     } else {
         categories["Autres"].spent = 0;
     }
-
-    // Update spending for "Autres"
-    // Here, you need to pass the transactions data if available:
-    // categories["Autres"].spent = calculateAutresExpenses(startDate, endDate, calendarData);
 
     let overspendingTotal = 0;
     Object.entries(categories).forEach(([name, data]) => {
@@ -133,21 +150,38 @@ export function updateCategoriesDisplay() {
     overspendingDisplay.textContent = `$${overspendingTotal}`;
 }
 
+// ==========================
+// 🚀 Initialize Budget Allocation
+// ==========================
 export async function initBudgetAllocation() {
-    console.log("Before init, allocatedCategories:", localStorage.getItem("allocatedCategories"));
+    console.log("🔄 Before init, allocatedCategories:", localStorage.getItem("allocatedCategories"));
     const storedCategories = localStorage.getItem("allocatedCategories");
     if (storedCategories) {
         categories = JSON.parse(storedCategories);
-        console.log("Loaded allocated budgets from localStorage.");
+        console.log("✅ Loaded allocated budgets from localStorage.");
     }
-    // Fetch dynamic data and update global calendarData if needed.
-    await fetchBudgetProgress(); // Make sure this function is implemented in your api.js module.
+
+    await fetchBudgetProgress(); // Fetch dynamic data from API
     totalFunds = await calculateFondsDisponibles();
     updateFundsDisplay();
     updateCategoriesDisplay();
 }
 
+// ==========================
+// 💾 Save Allocations
+// ==========================
 export function saveAllocations() {
     localStorage.setItem("allocatedCategories", JSON.stringify(categories));
-    console.log("Saved allocations:", categories);
+    console.log("💾 Saved allocations:", categories);
 }
+
+// ==========================
+// 🔄 Listen for Global Date Updates
+// ==========================
+document.addEventListener("dateRangeUpdated", (event) => {
+    const { section, startDate, endDate, view } = event.detail;
+    if (section === sectionName) {
+        console.log(`💰 Updating Budget: ${startDate} → ${endDate} (View: ${view})`);
+        updateCategoriesDisplay();
+    }
+});

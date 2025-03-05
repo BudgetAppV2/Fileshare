@@ -44,6 +44,7 @@ export function getTransactionBreakdown(calendarData, viewType, customRange) {
     breakdown["récurrent"] = 0;
 
     if (!calendarData || calendarData.length <= 1) {
+        console.log("Fetched Data:", calendarData);
         console.warn("No calendar data available.");
         return breakdown;
     }

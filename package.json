@@ -1,5 +1,20 @@
 {
+  "name": "budget-app-v2",
+  "version": "1.0.0",
+  "description": "Budget App Version 2",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
   "dependencies": {
+    "express": "^4.17.1",
+    "firebase-admin": "^11.10.1",
+    "firebase-functions": "^4.0.0",
     "google-auth-library": "^9.15.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
   }
 }
+
