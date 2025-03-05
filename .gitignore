@@ -28,3 +28,7 @@ build/
 # Temporary files
 tmp/
 temp/
+# Ignore Firebase secrets
+functions/serviceAccountKey.json
+public/firebaseConfig.js
+
